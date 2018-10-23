@@ -2,7 +2,7 @@
   
 
 <div style="padding-left: 30px; padding-top:20px">
-  <mat-form-field>
+  <mat-form-field style = "width:  30%">
     <input [(ngModel)]="passphrase" (ngModelChange) = "decryptText()" matInput placeholder="Passphrase" value="">
   </mat-form-field>
 </div>
@@ -17,6 +17,7 @@
   <mat-form-field class="split right">
     <h2>Decrypted Text</h2>
     <h4>Salt Array added extra (Not actually in encrypted object)</h4>
+    <p >{{salt}}</p>
 
     <section class="checkbox-section">
       <button mat-stroked-button (click) = "copyToClipboard()" color="primary">Copy to clipboard</button>

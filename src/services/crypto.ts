@@ -3,6 +3,12 @@ export enum CryptoAlg{
     AESGCM = "AES-GCM"
 }
 
+export interface ExportedDerivation{
+    result : string,
+    iv : string
+}
+
+
 /*
   Encrypts and Decrypts Objects
 
@@ -11,16 +17,20 @@ export class CryptoUtil {
 
 
 
-  static decryptStringFromPhrase<T>(passphrase:string, encodedData : string, alg : CryptoAlg):Promise<T | null>{
+  static decryptStringFromPhrase(passphrase:string, encodedData : string, alg : CryptoAlg):Promise<ExportedDerivation | null>{
   
     return this.importKey(passphrase).then((importedKey) => {
-        return this.decryptStringFromKey<T>(importedKey,encodedData, alg);
+        return this.decryptStringFromKey(importedKey,encodedData, alg);
       });
   }
 
-  static decryptStringFromKey<T>(importedKey:CryptoKey, encodedData : string, alg : CryptoAlg):Promise<T | null>{
+  static decryptStringFromKey(importedKey:CryptoKey, encodedData : string, alg : CryptoAlg):Promise<ExportedDerivation | null>{
     //Decode string
-      const decoded = this.stringToBuffer(window.atob(encodedData));
+
+      let decoded;
+      try{
+        decoded = this.stringToBuffer(window.atob(encodedData));
+      
       const salt = decoded.slice(0,16);
       const data = decoded.slice(16);
 
@@ -36,17 +46,16 @@ export class CryptoUtil {
           ) as Promise<ArrayBuffer>)
           .then((decrypted) => {
 
-            const encrytedString:string = this.bufferToString(new Uint8Array(decrypted));
-            //Added extra for debugging
-            var output:{} = JSON.parse(encrytedString)
-            output["salt"] = data;
-            return output as T;
+            const decryptedString:string = this.bufferToString(new Uint8Array(decrypted));
+            return {result : decryptedString, iv : JSON.stringify(salt)}
           })
           .catch((error : Error) => {
-              console.log(error)
             return null;
           });
         });
+    }catch{
+        return null;
+    }
   }
 
 
@@ -70,14 +79,14 @@ export class CryptoUtil {
   }
 
 
-  static encryptObjectFromPhrase<T>(passphrase : string, object : T, alg : CryptoAlg):Promise<string>{
+  static encryptObjectFromPhrase(passphrase : string, object : string, alg : CryptoAlg):Promise<ExportedDerivation>{
 
     return this.importKey(passphrase).then((importedKey) => {
-      return this.encryptObjectFromKey<T>(importedKey,object, alg);
+      return this.encryptObjectFromKey(importedKey,object, alg);
     });
   }
 
-  static encryptObjectFromKey<T>(importedKey : CryptoKey, object : T, alg : CryptoAlg){
+  static encryptObjectFromKey(importedKey : CryptoKey, object : string, alg : CryptoAlg):Promise<ExportedDerivation>{
     const salt = this.generateSalt(); 
 
     return this.deriveKey(importedKey,salt,alg).then((key) => {
@@ -95,7 +104,7 @@ export class CryptoUtil {
             tagLength: 128, //can be 32, 64, 96, 104, 112, 120 or 128 (default)
         },
         key, //from generateKey or importKey above
-        this.stringToBuffer(JSON.stringify(object))
+        this.stringToBuffer(object)
         ) 
         .then((encrypted) => {
 
@@ -106,7 +115,8 @@ export class CryptoUtil {
           const data = new Uint8Array(saltLength + encryptedLength);
           data.set(salt, 0);
           data.set(new Uint8Array(encrypted), saltLength);
-          return window.btoa(this.bufferToString(data));
+          var enc = window.btoa(this.bufferToString(data));
+          return {result : enc, iv : JSON.stringify(salt)}
             //returns an ArrayBuffer containing the encrypted data
         });   
     });
@@ -120,11 +130,16 @@ export class CryptoUtil {
    * @param str 
    */
   static stringToBuffer(str : string):Uint8Array{
-    const encBuff = new Uint8Array(str.length);
-    for (let i = 0; i < encBuff.length; i++) {
-        encBuff[i] = str.charCodeAt(i);
+    try{
+        const encBuff = new Uint8Array(str.length);
+        for (let i = 0; i < encBuff.length; i++) {
+            encBuff[i] = str.charCodeAt(i);
+        }
+        return encBuff;
+    }catch{
+        return new Uint8Array(0)
     }
-    return encBuff;
+
   }
 
   /**

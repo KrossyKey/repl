@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import clipboard from 'clipboard-polyfill';
 import hash from 'object-hash';
-import { CryptoUtil, CryptoAlg } from 'src/services/crypto';
+import { CryptoUtil, CryptoAlg, ExportedDerivation } from 'src/services/crypto';
 
 export interface TypeCreationDescriptor{
   typeName:string;
@@ -19,7 +19,7 @@ export class TextBoxViewComponent {
   encryptedText:string;
   decryptedText:string;
   passphrase:string;
-
+  salt:string;
   constructor() { 
 
   }
@@ -35,15 +35,34 @@ export class TextBoxViewComponent {
   }
 
   encryptText(){
-    CryptoUtil.encryptObjectFromPhrase<{}>(this.passphrase,this.decryptedText, CryptoAlg.AESGCM).then((enc : string) => {
-      this.encryptedText = enc;
-    })
+
+      CryptoUtil.encryptObjectFromPhrase(this.passphrase,this.decryptedText, CryptoAlg.AESGCM).then((enc : ExportedDerivation) => {
+        if (enc){
+          this.encryptedText = enc.result;
+
+          this.salt = enc.iv;
+        }else{
+          this.encryptedText = "";
+          this.salt = "";
+        }
+
+      })
+
   }
 
   decryptText(){
-    CryptoUtil.decryptStringFromPhrase<{}>(this.passphrase,this.encryptedText, CryptoAlg.AESGCM).then((dec : string) => {
-      this.decryptedText = JSON.stringify(dec).replace(/\\\//g, "");
-    })
+      CryptoUtil.decryptStringFromPhrase(this.passphrase,this.encryptedText, CryptoAlg.AESGCM).then((dec : ExportedDerivation) => {
+        if (dec){
+          this.decryptedText = dec.result;
+          this.salt = dec.iv;
+
+        }else{
+          this.decryptedText = "";
+          this.salt = "";
+        }
+
+      })
+    
   }
 
 
