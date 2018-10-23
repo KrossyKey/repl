@@ -1,0 +1,17 @@
+/* You can add global styles to this file, and also import other style files */
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
+@import url('https://fonts.googleapis.com/css?family=Leckerli+One');
+@import url('https://fonts.googleapis.com/css?family=Lato');
+
+.handwriting{
+    font-family: 'Leckerli One', cursive !important;
+    font-size: 150%
+}
+
+.mat-drawer-content {
+    overflow: hidden !important;
+}
+
+h1,h2,h3, p{
+    font-family: 'Lato', sans-serif;
+}

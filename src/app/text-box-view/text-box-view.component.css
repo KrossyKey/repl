@@ -1,0 +1,41 @@
+.split {
+    height: 100%;
+    position: fixed;
+    z-index: -100;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 100px;
+    padding-left: 30px;
+
+
+}
+
+.textarea{
+  height: 80vh;
+      width: 50vw;
+}
+
+
+.checkbox-section {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 60px;
+}
+
+.checkbox-margin {
+  margin: 0 10px;
+}
+
+
+.left {
+    left: 0;
+    width: 50vw;
+
+}
+
+.right {
+    right: 0;
+        width: 45vw;
+
+}
